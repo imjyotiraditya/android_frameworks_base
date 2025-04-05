@@ -23,6 +23,7 @@ import android.os.IVibratorStateListener;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
 import android.os.RichTapVibrationEffect;
+import android.os.VibrationEffect;
 import android.os.VibratorInfo;
 import android.os.vibrator.PrebakedSegment;
 import android.os.vibrator.PrimitiveSegment;
@@ -241,7 +242,7 @@ final class VibratorController {
     public void setAmplitude(float amplitude) {
         synchronized (mLock) {
             if (mRichTapService != null) {
-                int strength = (int) (255.0f * amplitude);
+                int strength = (int) (amplitude * VibrationEffect.MAX_AMPLITUDE);
                 mRichTapService.richTapVibratorSetAmplitude(strength);
             } else if (mVibratorInfo.hasCapability(IVibrator.CAP_AMPLITUDE_CONTROL)) {
                 mNativeWrapper.setAmplitude(amplitude);
@@ -291,16 +292,9 @@ final class VibratorController {
         synchronized (mLock) {
             long duration = 0;
             if (mRichTapService != null) {
-                int[] pattern = RichTapVibrationEffect.getInnerEffect(prebaked.getEffectId());
-                int strength = RichTapVibrationEffect.getInnerEffectStrength(
-                        prebaked.getEffectStrength());
-                if (pattern != null) {
-                    duration = 30;
-                    mRichTapService.richTapVibratorOnRawPattern(pattern, strength, 0);
-                } else {
-                    duration = mNativeWrapper.perform(prebaked.getEffectId(),
-                            prebaked.getEffectStrength(), vibrationId);
-                }
+                duration = 30;
+                mRichTapService.richTapVibratorPerform(prebaked.getEffectId(),
+                      (byte) prebaked.getEffectStrength());
             } else {
                 duration = mNativeWrapper.perform(prebaked.getEffectId(),
                         prebaked.getEffectStrength(), vibrationId);
