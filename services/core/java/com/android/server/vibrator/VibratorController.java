@@ -289,8 +289,8 @@ final class VibratorController {
      * do not support the input or a negative number if the operation failed.
      */
     public long on(PrebakedSegment prebaked, long vibrationId) {
+        long duration = 0;
         synchronized (mLock) {
-            long duration = 0;
             if (mRichTapService != null) {
                 duration = 30;
                 mRichTapService.richTapVibratorPerform(prebaked.getEffectId(),
@@ -298,13 +298,13 @@ final class VibratorController {
             } else {
                 duration = mNativeWrapper.perform(prebaked.getEffectId(),
                         prebaked.getEffectStrength(), vibrationId);
+                if (duration > 0) {
+                    mCurrentAmplitude = -1;
+                    notifyListenerOnVibrating(true);
+                }
             }
-            if (duration > 0) {
-                mCurrentAmplitude = -1;
-                notifyListenerOnVibrating(true);
-            }
-            return duration;
         }
+        return duration;
     }
 
     /**
